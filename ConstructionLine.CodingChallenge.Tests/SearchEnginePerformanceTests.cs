@@ -43,6 +43,8 @@ namespace ConstructionLine.CodingChallenge.Tests
             AssertResults(results.Shirts, options);
             AssertSizeCounts(_shirts, options, results.SizeCounts);
             AssertColorCounts(_shirts, options, results.ColorCounts);
+
+            Assert.Less(sw.ElapsedMilliseconds, 100, "Search took too long");
         }
     }
 }

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 
 namespace ConstructionLine.CodingChallenge
 {
@@ -7,22 +9,26 @@ namespace ConstructionLine.CodingChallenge
     {
         private readonly List<Shirt> _shirts;
 
+        private readonly Dictionary<Tuple<Size, Color>, IEnumerable<Shirt>> _shirtLookup;
+
         public SearchEngine(List<Shirt> shirts)
         {
             _shirts = shirts;
 
-            // TODO: data preparation and initialisation of additional data structures to improve performance goes here.
-
+            var shirtLookup = shirts.GroupBy(g => new { g.Size, g.Color });
+            _shirtLookup = shirtLookup.ToDictionary(k => Tuple.Create(k.Key.Size, k.Key.Color), v => v.AsEnumerable());
         }
 
 
         public SearchResults Search(SearchOptions options)
         {
-            // TODO: search logic goes here.
-            var results = _shirts.Where(w => 
-                (!options.Sizes.Any() || options.Sizes.Contains(w.Size))
-                && 
-                (!options.Colors.Any() || options.Colors.Contains(w.Color)));
+            var searchSizes = !options.Sizes.Any() ? Size.All : options.Sizes;
+            var searchColors = !options.Colors.Any() ? Color.All : options.Colors;
+
+            var results = _shirtLookup.Where(w =>
+                (searchSizes.Contains(w.Key.Item1))
+                &&
+                (searchColors.Contains(w.Key.Item2))).SelectMany(s => s.Value);
 
             var sizeCounts = Size.All.Select(s => 
                 new SizeCount { Size = s, Count = results.Count(w => w.Size.Equals(s)) }).OrderBy(o => o.Size.Id);
